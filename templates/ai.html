@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign AI | Smart Village Governance</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet & Heatmap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --bg: #0b0f1a;
+            --card-bg: rgba(22, 27, 48, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.5rem;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .dt-box {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        /* Components */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 2.2rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 25px 50px -15px rgba(16, 185, 129, 0.15);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 i { color: var(--primary); }
+
+        /* Form */
+        form { display: flex; flex-direction: column; gap: 1.2rem; }
+        
+        textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.2rem;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            transition: 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        
+        input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.8rem;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), #059669);
+            color: white;
+            border: none;
+            padding: 1.1rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* Stats */
+        .stats-reel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-bit {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 18px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+        }
+
+        .stat-bit .val {
+            display: block;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .stat-bit .lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Recommendation */
+        .rec-box {
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-top: 2rem;
+        }
+
+        .rec-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        /* Map */
+        #map-v {
+            height: 480px;
+            border-radius: 24px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--card-border);
+        }
+
+        /* Logs & News */
+        .sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .sub-grid { grid-template-columns: 1fr; }
+        }
+
+        .scroller {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .log-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--primary);
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .news-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid var(--card-border);
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        .news-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--primary);
+        }
+
+        .news-card .source {
+            font-size: 0.7rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .news-card h4 { margin-bottom: 6px; font-size: 1.05rem; }
+        .news-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+        .news-banner{
+            margin-bottom:20px;
+        }
+
+        .alert{
+            background: rgba(239, 68, 68, 0.15);
+            padding: 1rem;
+            margin: 10px 0;
+            border-left: 5px solid #ef4444;
+            font-weight: bold;
+            color: #fca5a5;
+            border-radius: 4px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav>
+            <div class="logo">
+                <i class="fas fa-microchip"></i>
+                <span>Sovereign <span style="font-weight: 300;">AI</span></span>
+            </div>
+            <div class="dt-box" id="time-display"></div>
+        </nav>
+
+        <div class="grid">
+            <!-- Left Panel -->
+            <div class="l-panel">
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-file-signature"></i> Report Grievance</h2>
+                    <form action="/" method="POST">
+                        <textarea name="complaint" rows="3" placeholder="How can we improve the village today? (e.g., Water leakage at Sector 4)" required></textarea>
+                        
+                        <div class="input-group">
+                            <input type="text" name="place" id="address-v" placeholder="Enter place (Example: Pallappuram)">
+                        </div>
+
+                        <div class="input-row">
+                             <input type="text" name="lat" id="lat-v" placeholder="Latitude">
+                             <input type="text" name="lon" id="lon-v" placeholder="Longitude">
+                        </div>
+                        
+                        <button type="submit" class="btn-submit">
+                            <span>Submit Intelligence Report</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+                    <p id="geo-info" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; text-align: center;"></p>
+                </div>
+
+                <div class="glass-card">
+                    <h2><i class="fas fa-bolt"></i> AI Strategic Recommendation</h2>
+                    <div class="rec-box">
+                        <div class="rec-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 1.1rem; font-weight: 600;">{{ recommendation }}</p>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Predictive routing initialized for city maintenance teams.</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <canvas id="mini-chart" style="height: 180px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="r-panel">
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <h2>🚨 AI Detected Issues From News</h2>
+                    <div class="news-banner">
+                        {% for news in news_alerts %}
+                        <div class="alert">
+                            ⚠ {{news}}
+                        </div>
+                        {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Scanning global feeds for regional anomalies...</p>
+                        {% endfor %}
+                    </div>
+
+                    <h2><i class="fas fa-layer-group"></i> Regional Crisis Heatmap</h2>
+                    <div id="map-v"></div>
+                    
+                    <div class="stats-reel">
+                        <div class="stat-bit">
+                            <span class="val" style="color: var(--primary);">{{ road }}</span>
+                            <span class="lbl">Infrastructure</span>
+                        </div>
+                        <div class="stat-bit">
+                            <span class="val" style="color: var(--accent);">{{ water }}</span>
+                            <span class="lbl">Water/Utility</span>
+                        </div>
+                        <div class="stat-bit">
+                            <span class="val" style="color: var(--warning);">{{ garbage }}</span>
+                            <span class="lbl">Sanitation</span>
+                        </div>
+                        <div class="stat-bit">
+                            <span class="val" style="color: #ef4444;">{{ light }}</span>
+                            <span class="lbl">Power/Grid</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-grid">
+                    <div class="glass-card">
+                        <h2><i class="fas fa-history"></i> Recent Logs</h2>
+                        <div class="scroller">
+                            {% for c in complaints[::-1] %}
+                            <div class="log-item">
+                                <span style="font-size: 0.7rem; color: var(--primary); font-weight: 700;">{{ c.location }} @ {{ c.timestamp }}</span>
+                                <p style="margin-top: 5px;">{{ c.text }}</p>
+                            </div>
+                            {% else %}
+                            <p style="text-align: center; padding: 2rem; color: var(--text-muted);">Awaiting telemetry data...</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h2><i class="fas fa-newspaper"></i> Global News Feed</h2>
+                        <div class="scroller">
+                            {% for item in news_alerts %}
+                            <div class="news-card">
+                                <span class="source">AI News Insight</span>
+                                <h4>{{ item }}</h4>
+                                <p>Scanning global feeds for regional anomalies...</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Time Display
+        document.getElementById('time-display').innerText = new Date().toLocaleString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // Map Logic
+        const map = L.map('map-v', { zoomControl: false }).setView([10.5276, 76.2144], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO'
+        }).addTo(map);
+
+        const hp = {{ heatmap_data | safe }};
+        if (hp.length > 0) {
+            L.heatLayer(hp, { radius: 30, blur: 20, max: 1 }).addTo(map);
+            const b = L.latLngBounds(hp.map(p => [p[0], p[1]]));
+            map.fitBounds(b, { padding: [40, 40] });
+        }
+
+        // Geolocation
+        if (navigator.geolocation) {
+            document.getElementById('geo-info').innerText = "🛰️ Linking satellite position...";
+            navigator.geolocation.getCurrentPosition((p) => {
+                document.getElementById('lat-v').value = p.coords.latitude.toFixed(6);
+                document.getElementById('lon-v').value = p.coords.longitude.toFixed(6);
+                document.getElementById('geo-info').innerText = "✅ Satellite lock established.";
+            }, () => {
+                document.getElementById('geo-info').innerText = "⚠️ External GPS lock failed. Manual override required.";
+                document.getElementById('lat-v').readOnly = false;
+                document.getElementById('lon-v').readOnly = false;
+            });
+        }
+
+        // Charting
+        const ctx = document.getElementById('mini-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Infrastructure', 'Water', 'Sanitation', 'Power'],
+                datasets: [{
+                    data: [{{ road }}, {{ water }}, {{ garbage }}, {{ light }}],
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+</body>
+</html>

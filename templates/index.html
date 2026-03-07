@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign | Smart Village Governance AI</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon"><i class="fas fa-leaf"></i></span>
+            <span class="brand-text">Sovereign <span class="accent">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Village Insights</a>
+            <a href="#">Support</a>
+        </div>
+        <div class="nav-cta">
+            <span class="status-indicator"></span>
+            <span>Live System</span>
+        </div>
+    </nav>
+
+    <main class="dashboard">
+        <header class="hero-section">
+            <div class="hero-content">
+                <h1>Smart Village Governance <span class="text-gradient">AI Dashboard</span></h1>
+                <p>Advanced real-time infrastructure monitoring and intelligent complaint management for sustainable rural development.</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card glass road">
+                <div class="icon-box"><i class="fas fa-road"></i></div>
+                <div class="stat-info">
+                    <h3>Road Issues</h3>
+                    <div class="stat-value">{{road}}</div>
+                    <p class="stat-change negative">Critical Attention</p>
+                </div>
+            </div>
+            <div class="stat-card glass water">
+                <div class="icon-box"><i class="fas fa-tint"></i></div>
+                <div class="stat-info">
+                    <h3>Water Supply</h3>
+                    <div class="stat-value">{{water}}</div>
+                    <p class="stat-change">Active Monitoring</p>
+                </div>
+            </div>
+            <div class="stat-card glass waste">
+                <div class="icon-box"><i class="fas fa-trash-alt"></i></div>
+                <div class="stat-info">
+                    <h3>Waste & Hygiene</h3>
+                    <div class="stat-value">{{garbage}}</div>
+                    <p class="stat-change positive">Improving</p>
+                </div>
+            </div>
+            <div class="stat-card glass power">
+                <div class="icon-box"><i class="fas fa-lightbulb"></i></div>
+                <div class="stat-info">
+                    <h3>Street Lights</h3>
+                    <div class="stat-value">{{light}}</div>
+                    <p class="stat-change">Standard Maintenance</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="main-grid">
+            <!-- Left Column: Submit Complaint & AI Recommendation -->
+            <div class="col-left">
+                <div class="card glass complaint-form">
+                    <h2><i class="fas fa-pen-nib"></i> File a Village Complaint</h2>
+                    <form action="/" method="POST">
+                        <div class="input-group">
+                            <label for="complaint">Describe the issue</label>
+                            <textarea name="complaint" id="complaint" placeholder="Example: Broken street light near the primary school..." required></textarea>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="lat">Latitude</label>
+                                <input type="text" name="lat" id="lat" placeholder="10.5276" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="lon">Longitude</label>
+                                <input type="text" name="lon" id="lon" placeholder="76.2144" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <span>Submit Resolution Request</span>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card glass ai-recommendation">
+                    <div class="ai-header">
+                        <i class="fas fa-robot"></i>
+                        <h2>AI Strategic Recommendation</h2>
+                    </div>
+                    <div class="priority-box {{recommendation_priority|default('high')}}">
+                        <span class="priority-label">Priority Level: {{recommendation_priority|default('High')}}</span>
+                        <h3>{{recommendation}}</h3>
+                        <p>Based on current complaint density and infrastructure importance, our AI recommends immediate deployment of specialized crews to this sector.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Monitoring & Map -->
+            <div class="col-right">
+                <div class="card glass chart-container">
+                    <h2>Infrastructure Problem Intensity</h2>
+                    <div class="canvas-wrapper">
+                        <canvas id="villageChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card glass map-container">
+                    <h2>Critical Issue Heatmap</h2>
+                    <div id="villageMap"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="log-section">
+            <div class="card glass complaint-logs">
+                <div class="log-header">
+                    <h2>Recent Grievance Logs</h2>
+                    <button class="btn-export">Export PDF <i class="fas fa-file-export"></i></button>
+                </div>
+                <div class="log-list">
+                    {% for c in complaints %}
+                    <div class="log-item">
+                        <div class="log-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="log-content">
+                            <p class="log-text">{{c}}</p>
+                            <span class="log-time">Reported just now</span>
+                        </div>
+                        <div class="log-status pending">Pending</div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No complaints filed yet. The village is operating smoothly.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Sovereign Governance AI System. Built for Progress.</p>
+    </footer>
+
+    <script>
+        // Chart Initialization
+        const ctx = document.getElementById('villageChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.8)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.1)');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Road', 'Water', 'Garbage', 'Street Light'],
+                datasets: [{
+                    label: 'Active Problems',
+                    data: [{{road}}, {{water}}, {{garbage}}, {{light}}],
+                    backgroundColor: gradient,
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { weight: '600' } }
+                    }
+                }
+            }
+        });
+
+        // Map Initialization
+        const villagePos = [10.5276, 76.2144];
+        const map = L.map('villageMap', {
+            zoomControl: false,
+            scrollWheelZoom: false
+        }).setView(villagePos, 14);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }).addTo(map);
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        {% if heatmap_data %}
+        const heatData = {{heatmap_data|tojson}};
+        const heat = L.heatLayer(heatData, {
+            radius: 35,
+            blur: 25,
+            maxZoom: 17,
+            gradient: {0.4: '#10b981', 0.65: '#f59e0b', 1: '#ef4444'}
+        }).addTo(map);
+        {% endif %}
+
+        // Simple mouse trail effect for dashboard
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.querySelector('.glow-bg');
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>
